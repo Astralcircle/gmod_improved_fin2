@@ -69,9 +69,9 @@ if CLIENT then
         local Entity   = Player:GetEyeTrace().Entity
         local Weapon   = Player:GetActiveWeapon()
         if (!Player:IsValid() or !Entity:IsValid() or !Weapon:IsValid()) then return end
-        
+
         local position = (Entity:LocalToWorld(Entity:OBBCenter())):ToScreen()
-        
+
         -- Check that the tool-gun is active with the fin-tool on
         --local TOOL = LocalPlayer():GetTool("fin2")
         local show_HUD_always = GetConVar("show_HUD_always", 0):GetInt()
@@ -79,10 +79,10 @@ if CLIENT then
         if (show_HUD_always == 0) then
             if Weapon:GetClass() != "gmod_tool" or Player:GetInfo("gmod_toolmode") != "fin2" then return end
         end
-        
+
         -- -99/nil = partially removed
         -- -99999999/-nil = undefined
-        
+
         -- Get networked values of Entity
         local Active            = Entity:GetNWBool("Active", false)
         local efficency         = Entity:GetNWFloat("efficency", -99999999)
@@ -97,7 +97,7 @@ if CLIENT then
             if (Entity:IsValid()) then
                 local on = "On"
                 local off = "Off"
-                
+
                 -- Convert into a readable format
                 if (lift == "lift_normal") then lift = "L.B.P Normal" end
                 if (lift == "lift_none") then lift = "No Lift" end
@@ -114,7 +114,7 @@ if CLIENT then
                 --
                 if (cline == 1) then cline = on end
                 if (cline == 0) then cline = off end
-                
+
                 -- Partially removed (using reload (R)) fin
                 if ((lift == "nil") and (efficency == -99) and (pos_ang_opt == "-nil") and (pln == -99) and (wind == -99) and (cline == -99)) then
                     efficency   = "nil"
@@ -142,7 +142,7 @@ if CLIENT then
                     wind        = "nil"
                     cline       = "nil"
                 end
-                
+
                 -- Set text-string for display
                 local text0     = "Effic.: "..efficency
                 local text1     = "Lift: "..lift
@@ -217,7 +217,7 @@ if CLIENT then
             end
         else return end
     end
-    
+
     hook.Add("HUDPaint", "showValuesFinHUD", showValuesFinHUD)
 end
 
@@ -225,14 +225,14 @@ function TOOL:LeftClick( trace )
 	if (!trace.Hit or !trace.Entity:IsValid() or trace.Entity:GetClass() != "prop_physics") then return false end
 	if (SERVER and !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone )) then return false end
 	if CLIENT then return true end
-	
+
     local eff         = self:GetClientNumber("eff")
 	local pln         = self:GetClientNumber("pln")
 	local lft         = self:GetClientInfo("lift")
 	local wnd         = self:GetClientNumber("wind")
     local cln         = self:GetClientNumber("cline")
     local pos_ang_opt = self:GetClientInfo("pos_ang_opt")
-	
+
 	if (trace.Entity.Fin2_Ent != nil) then
 		local Data = {
 			lift	        = lft,
@@ -244,15 +244,15 @@ function TOOL:LeftClick( trace )
 		}
 		table.Merge(trace.Entity.Fin2_Ent:GetTable(), Data)
 		duplicator.StoreEntityModifier(trace.Entity, "fin2", Data)
-        
+
         -- Access on server- and client-side
         networked(trace.Entity, Data)
-        
+
 		return true
 	end
-	
+
 	if !self:GetSWEP():CheckLimit("fin_2") then return false end
-    
+
     local Data = {}
     if (pos_ang_opt == "0") then
         Data = {
@@ -277,9 +277,9 @@ function TOOL:LeftClick( trace )
             pos_ang_opt = pos_ang_opt
         }
     end
-	
+
 	local fin = MakeFin2Ent(self:GetOwner(), trace.Entity, Data)
-	
+
     -- Remove
 	undo.Create("fin_2")
         undo.AddFunction(function()
@@ -289,7 +289,7 @@ function TOOL:LeftClick( trace )
         undo.AddEntity(fin)
         undo.SetPlayer(self:GetOwner())
 	undo.Finish()
-	
+
 	return true
 end
 
@@ -314,7 +314,7 @@ function TOOL:Reload( trace )
 		trace.Entity.Fin2_Ent = nil
         -- Remove networked-settings for Entity
         networked_remove_partially(trace.Entity)
-        
+
 		return true
 	end
 end
@@ -347,10 +347,10 @@ if SERVER then
 		duplicator.StoreEntityModifier(Entity, "fin2", Data)
 		Player:AddCount("fin_2", fin)
 		Player:AddCleanup("fin_2", fin)
-        
+
         -- Access on server- and client-side
         networked(Entity, Data)
-		
+
 		return fin
 	end
 	duplicator.RegisterEntityModifier("fin2", MakeFin2Ent)
@@ -358,31 +358,31 @@ end
 
 
 function TOOL.BuildCPanel(CPanel)
-    -- Options	
+    -- Options
 	CPanel:AddControl("Header", {Text = "#Tool.fin2.name"})
-    
+
     local left = vgui.Create("DLabel", CPanel)
 	left:SetText("Lift-type:")
 	left:SetDark(true)
-			
+
 	local ctrl = vgui.Create("CtrlListBox", CPanel)
 	ctrl:AddOption("No lift", {fin2_lift = "lift_none"})
 	ctrl:AddOption("Lift by Plane (normal)", {fin2_lift = "lift_normal"})
     ctrl:SetSize(165, 25)
     ctrl:Dock(RIGHT)
-    
+
     CPanel:AddItem(left, ctrl)
     -- Alignment, Position - Option
     local left2 = vgui.Create("DLabel", CPanel)
 	left2:SetText("Pos. and angle:")
 	left2:SetDark(true)
-			
+
 	local ctrl2 = vgui.Create("CtrlListBox", CPanel)
     ctrl2:AddOption("Relative to player (default)", {fin2_pos_ang_opt = "0"})
     ctrl2:AddOption("Relative to prop", {fin2_pos_ang_opt = "1"})
     ctrl2:SetSize(165, 25)
     ctrl2:Dock(RIGHT)
-    
+
     CPanel:AddItem(left2, ctrl2)
     -- Slider
 	CPanel:NumSlider("#Tool.fin2.eff", "fin2_eff", 0, 250, 0)
