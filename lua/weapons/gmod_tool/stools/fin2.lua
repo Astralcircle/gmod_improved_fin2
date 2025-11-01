@@ -284,7 +284,9 @@ function TOOL:LeftClick( trace )
 	undo.Create("fin_2")
         undo.AddFunction(function()
             -- Remove networked-settings for Entity
-            networked_remove(trace.Entity)
+            if trace.Entity:IsValid() then
+                networked_remove(trace.Entity)
+            end
         end)
         undo.AddEntity(fin)
         undo.SetPlayer(self:GetOwner())
